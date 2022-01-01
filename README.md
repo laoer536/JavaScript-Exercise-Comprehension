@@ -1,3 +1,13 @@
+<div align="left">
+<img alt="Liu Jie" src="https://s2.loli.net/2021/12/16/rxjhMFtGElVIuyz.png" width=50 />
+</div>
+
+*I'm LiuJie, a Front-end technical lunatics.*
+
+[Github](https://github.com/laoer536)
+
+
+
 # JS错题集
 
 `number与new Number` 
