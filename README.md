@@ -542,7 +542,7 @@ number++   首先返回变化之前的值  和C++类似
 
 
 
-
+![image-20220104212010025](https://s2.loli.net/2022/01/04/N8UoAHYwejbh19F.png)
 
 
 
