@@ -1,7 +1,6 @@
 <div align="left">
 <img alt="Liu Jie" src="https://s2.loli.net/2021/12/16/rxjhMFtGElVIuyz.png" width=50 />
 </div>
-
 *I'm LiuJie, a Front-end technical lunatics.*
 
 [Github](https://github.com/laoer536)
@@ -122,16 +121,21 @@ array.reduce基础
 
 拓展：array.reduce((acc,cur,index,array=>{return ------),initialValue)  (acc必传 代表累计器值)
 
+> 累加器的值等于回调函数先前返回的值。若没有返回则为undefined
+
 ```js
 arr.reduce(callback(accumulator, currentValue[, index[, array]])[, initialValue])
 ```
 
 1. Accumulator (acc) (累计器)
+
 2. Current Value (cur) (当前值)
+
 3. Current Index (idx) (当前索引)
+
 4. Source Array (src) (源数组)
 
-
+   
 
 `!!`转换数据为布尔类型
 
@@ -458,25 +462,83 @@ console.log(person.name) //newGif
 
 
 
+JSON.stringfy可以配置其转化
+
+> JSON.stringfy不仅有将我们的数据转化为JSON字符串对象的能力，我们还可以对其转化进行配置
+
+> `JSON.stringify()`将值转换为相应的JSON格式：
+>
+> - 转换值如果有 toJSON() 方法，该方法定义什么值将被序列化。
+> - 非数组对象的属性不能保证以特定的顺序出现在序列化后的字符串中。
+> - 布尔值、数字、字符串的包装对象在序列化过程中会自动转换成对应的原始值。
+> - `undefined`、任意的函数以及 symbol 值，在序列化过程中会被忽略（出现在非数组对象的属性值中时）或者被转换成 `null`（出现在数组中时）。函数、undefined 被单独转换时，会返回 undefined，如`JSON.stringify(function(){})` or `JSON.stringify(undefined)`.
+> - 对包含循环引用的对象（对象之间相互引用，形成无限循环）执行此方法，会抛出错误。
+> - 所有以 symbol 为属性键的属性都会被完全忽略掉，即便 `replacer` 参数中强制指定包含了它们。
+> - Date 日期调用了 toJSON() 将其转换为了 string 字符串（同Date.toISOString()），因此会被当做字符串处理。
+> - NaN 和 Infinity 格式的数值及 null 都会被当做 null。
+> - 其他类型的对象，包括 Map/Set/WeakMap/WeakSet，仅会序列化可枚举的属性。
+
+![](https://s2.loli.net/2022/01/04/gruSs3otEB9kph6.png)
+
+
+
+number++   首先返回变化之前的值  和C++类似
+
+![image-20220104152059773](https://s2.loli.net/2022/01/04/P68Rytw1DG52EkC.png)
 
 
 
 
 
+默认参数会被分配一个空间 这时不存在引用问题
+
+![image-20220104153014617](https://s2.loli.net/2022/01/04/7Dj6axVK1Ln9MFf.png)
 
 
 
+类的继承（扩展类继承产生的重写特性）
 
+![image-20220104204559384](https://s2.loli.net/2022/01/04/PlZwXaYyE9JCeqB.png)
 
+```typescript
+(function () {
+    class Animal {
+        name: string;
 
+        constructor(name: string) {
+            this.name = name;
+        }
 
+        sayHello() {
+            console.log('动物在叫~');
+        }
+    }
 
+    class Dog extends Animal{
 
+        age: number;
 
+        constructor(name: string, age: number) {
+            // 如果在子类中写了构造函数，在子类构造函数中必须对父类的构造函数进行调用（因为存在重写 子类的constructor会覆盖掉父类的constructor 所以这里必须使用super 即使父类没有书写constructor（父类存在隐式的constructor生成））
+            //即同名方法的重写
+            super(name); // 调用父类的构造函数
+            //super();   //如果父类没有需要要传入参数的情况 也要手动调用super()
+            this.age = age;
+        }
 
+        sayHello() {
+            // 在类的方法中 super就表示当前类的父类
+            //super.sayHello();
 
+            console.log('汪汪汪汪！');
+        }
 
+    }
 
+    const dog = new Dog('旺财', 3);
+    dog.sayHello();
+})();
+```
 
 
 
