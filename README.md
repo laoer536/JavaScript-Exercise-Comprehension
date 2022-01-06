@@ -546,6 +546,364 @@ number++   首先返回变化之前的值  和C++类似
 
 
 
+import和require的一个区别：一个是提升到顶层 一个是运行时按需加载（优先级不会被提升）
+
+![image-20220105091358136](https://s2.loli.net/2022/01/05/H1SoXRYj7bqBpx5.png)
+
+
+
+Symbol创建唯一值  与传入的参数无关
+
+![image-20220105092147722](https://s2.loli.net/2022/01/05/2DdoQNxnPFmaSkJ.png)
+
+特殊符号处理为字符串 可以正常输出
+
+![image-20220105093204025](https://s2.loli.net/2022/01/05/KODdzshvB1YJipN.png)
+
+这样就不行：
+
+![image-20220105093344357](https://s2.loli.net/2022/01/05/LznI4Albfe1dk3J.png)
+
+
+
+生成器函数`function*`
+
+![image-20220105094312215](https://s2.loli.net/2022/01/05/hEnRGW4ad5pcHsV.png)
+
+扩展：
+
+ [语法]
+
+```
+function* name([param[, param[, ... param]]]) { statements }
+```
+
+- `name`
+
+  函数名
+
+- `param`
+
+  要传递给函数的一个参数的名称，一个函数最多可以有255个参数。
+
+- `statements`
+
+  普通JS语句。
+
+[描述]
+
+**生成器函数**在执行时能暂停，后面又能从暂停处继续执行。
+
+调用一个**生成器函数**并不会马上执行它里面的语句，而是返回一个这个生成器的 **迭代器** **（ [iterator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#iterator) ）对象**。当这个迭代器的 `next() `方法被首次（后续）调用时，其内的语句会执行到第一个（后续）出现[`yield`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/yield)的位置为止，[`yield`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/yield) 后紧跟迭代器要返回的值。或者如果用的是 [`yield*`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/yield*)（多了个星号），则表示将执行权移交给另一个生成器函数（当前生成器暂停执行）。
+
+`next()`方法返回一个对象，这个对象包含两个属性：value 和 done，value 属性表示本次 `yield `表达式的返回值，done 属性为布尔类型，表示生成器后续是否还有` yield `语句，即生成器函数是否已经执行完毕并返回。
+
+调用 `next()`方法时，如果传入了参数，那么这个参数会传给**上一条执行的 yield语句左边的变量**，例如下面例子中的` x `：
+
+```js
+function *gen(){
+    yield 10;
+    x=yield 'foo';
+    yield x;
+}
+
+var gen_obj=gen();
+console.log(gen_obj.next());// 执行 yield 10，返回 10
+console.log(gen_obj.next());// 执行 yield 'foo'，返回 'foo'
+console.log(gen_obj.next(100));// 将 100 赋给上一条 yield 'foo' 的左值，即执行 x=100，返回 100
+console.log(gen_obj.next());// 执行完毕，value 为 undefined，done 为 true
+```
+
+当在生成器函数中显式 `return `时，会导致生成器立即变为完成状态，即调用 `next()` 方法返回的对象的 `done `为 `true`。如果 `return `后面跟了一个值，那么这个值会作为**当前**调用 `next()` 方法返回的 value 值。
+
+
+
+`yield*` 可以移交执行权
+
+```js
+function* anotherGenerator(i) {
+  yield i + 1;
+  yield i + 2;
+  yield i + 3;
+}
+
+function* generator(i){
+  yield i;
+  yield* anotherGenerator(i);// 移交执行权
+  yield i + 10;
+}
+
+var gen = generator(10);
+
+console.log(gen.next().value); // 10
+console.log(gen.next().value); // 11
+console.log(gen.next().value); // 12
+console.log(gen.next().value); // 13
+console.log(gen.next().value); // 20
+```
+
+
+
+String.raw()  （可以忽略字符串中的转义字符的影响）
+
+> 在大多数情况下, `String.raw()`是用来处理模版字符串的.
+
+![image-20220105100503579](https://s2.loli.net/2022/01/05/syMzt5DGnrRShcV.png)
+
+```js
+String.raw`Hi\n${2+3}!`;
+// 'Hi\\n5!'，Hi 后面的字符不是换行符，\ 和 n 是两个不同的字符
+
+String.raw `Hi\u000A!`;
+// "Hi\\u000A!"，同上，这里得到的会是 \、u、0、0、0、A 6个字符，
+// 任何类型的转义形式都会失效，保留原样输出，不信你试试.length
+
+let name = "Bob";
+String.raw `Hi\n${name}!`;
+// "Hi\nBob!"，内插表达式还可以正常运行
+
+
+// 正常情况下，你也许不需要将 String.raw() 当作函数调用。
+// 但是为了模拟 `t${0}e${1}s${2}t` 你可以这样做:
+String.raw({ raw: 'test' }, 0, 1, 2); // 't0e1s2t'
+// 注意这个测试, 传入一个 string, 和一个类似数组的对象
+// 下面这个函数和 `foo${2 + 3}bar${'Java' + 'Script'}baz` 是相等的.
+String.raw({
+  raw: ['foo', 'bar', 'baz']
+}, 2 + 3, 'Java' + 'Script'); // 'foo5barJavaScriptbaz'
+```
+
+
+
+async返回的是一个Promise对象 
+
+![image-20220105101346125](https://s2.loli.net/2022/01/05/oxMmduZgRnqyz1f.png)
+
+
+
+Object.freeze 冻结对象 （误选为D 严格模式启用了才选D）
+
+> 关于严格模式的更多信息查看：[JS中「严格模式」与「非严格模式」有什么区别？ - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/362078508)
+
+![image-20220105102528223](https://s2.loli.net/2022/01/05/bzC7Jj49RY6INPl.png)
+
+
+
+```js
+var obj = {
+  prop: function() {},
+  foo: 'bar'
+};
+
+// 新的属性会被添加, 已存在的属性可能
+// 会被修改或移除
+obj.foo = 'baz';
+obj.lumpy = 'woof';
+delete obj.prop;
+
+// 作为参数传递的对象与返回的对象都被冻结
+// 所以不必保存返回的对象（因为两个对象全等）
+var o = Object.freeze(obj);
+
+o === obj; // true
+Object.isFrozen(obj); // === true
+
+// 现在任何改变都会失效
+obj.foo = 'quux'; // 静默地不做任何事
+// 静默地不添加此属性
+obj.quaxxor = 'the friendly duck';
+
+// 在严格模式，如此行为将抛出 ReferenceError
+function fail(){
+  'use strict';
+  obj.foo = 'sparky'; // throws a ReferenceError
+  delete obj.quaxxor; // 返回true，因为quaxxor属性从来未被添加
+  obj.sparky = 'arf'; // throws a ReferenceError
+}
+
+fail();
+
+// 试图通过 Object.defineProperty 更改属性
+// 下面两个语句都会抛出 TypeError.
+Object.defineProperty(obj, 'ohai', { value: 17 });
+Object.defineProperty(obj, 'foo', { value: 'eit' });
+
+// 也不能更改原型
+// 下面两个语句都会抛出 TypeError.
+Object.setPrototypeOf(obj, { x: 20 })
+obj.__proto__ = { x: 20 }
+```
+
+补充：
+
+**ReferenceError：**
+
+相较于TypeError，ReferenceError 其实更容易被理解，他的错误就是字面意思，引用错误。这意味着在尝试引用一个不存在当前作用域中的变量/常量时产生的错误。
+
+```js
+let a = b; // ReferenceError，因为 b 未被定义
+console.log(c) // ReferenceError，因为 c 未被定义
+```
+
+**TypeError：**
+
+TypeError 会发生在值的类型不符合预期时。换句话说，在对值的操作方法不存在或并未正确的定义时，TypeError 就会被返回。
+
+```js
+let a; // a = undefined
+console.log(a.b) // TypeError,无法从 undefined 这个类型上读取属性
+
+let c = 1;
+console.log(c()) // TypeError，c并不是一个函数
+```
+
+
+
+关于解构中重命名的问题
+
+![image-20220105141400237](https://s2.loli.net/2022/01/05/JOaUGs4lvXg9LV3.png)
+
+
+
+Pure Function (纯函数)
+
+> 纯函数是满足如下条件的函数：
+>
+> - 相同输入总是会返回相同的输出。
+> - 不产生副作用。
+> - 不依赖于外部状态。
+
+![image-20220105142311067](https://s2.loli.net/2022/01/05/f9niUYoRVgZwJHy.png)
+
+
+
+函数中如果传入的值有计算 则会先进行计算在传入函数
+
+![image-20220105145812204](https://s2.loli.net/2022/01/05/bDujPLIGHYWVTSf.png)
+
+扩展：
+
+`in`关键字
+如果指定的属性在指定的对象或其原型链中，则in 运算符返回true。
+
+```js
+// 数组
+var trees = new Array("redwood", "bay", "cedar", "oak", "maple");
+0 in trees        // 返回true
+3 in trees        // 返回true
+6 in trees        // 返回false
+"bay" in trees    // 返回false (必须使用索引号,而不是数组元素的值)
+
+"length" in trees // 返回true (length是一个数组属性)
+
+Symbol.iterator in trees // 返回true (数组可迭代，只在ES2015+上有效)
+
+
+// 内置对象
+"PI" in Math          // 返回true
+
+// 自定义对象
+var mycar = {make: "Honda", model: "Accord", year: 1998};
+"make" in mycar  // 返回true
+"model" in mycar // 返回true
+```
+
+补充一下 只要涉及到表达式、运算 运行时JS都会将其先执行了 再输出
+
+![image-20220105150401966](https://s2.loli.net/2022/01/05/PC958LvyuklX1Zr.png)
+
+
+
+选成了A  啊我的天  即使是undefined 也是要输出的大哥
+
+![image-20220105151232978](https://s2.loli.net/2022/01/05/6whXRsOfI8olWmC.png)
+
+
+
+以下只是起调用 并没有修改对象  调用`person.city`并不会引发属性的创建 
+
+![image-20220105152255902](https://s2.loli.net/2022/01/05/2V5OSMGrwmet8yd.png)
+
+
+
+块级作用域啊  大哥  （亏）
+
+![image-20220105174333601](https://s2.loli.net/2022/01/05/t8C3edDaFvwxEmq.png)
+
+
+
+异步处理中` .then`中如果有返回值 那么下一个` .then`接收到的参数值就是上一个` .then`的返回值
+
+![image-20220106174216733](https://s2.loli.net/2022/01/06/ow1CgrB9EPOtbJK.png)
+
+
+
+扩展：
+
+fetch: [使用 Fetch - Web API 接口参考 | MDN (mozilla.org)](https://developer.mozilla.org/zh-CN/docs/Web/API/Fetch_API/Using_Fetch)
+
+```js
+// Example POST method implementation:
+async function postData(url = '', data = {}) {
+  // Default options are marked with *
+  const response = await fetch(url, {
+    method: 'POST', // *GET, POST, PUT, DELETE, etc.
+    mode: 'cors', // no-cors, *cors, same-origin
+    cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+    credentials: 'same-origin', // include, *same-origin, omit
+    headers: {
+      'Content-Type': 'application/json'
+      // 'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    redirect: 'follow', // manual, *follow, error
+    referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+    body: JSON.stringify(data) // body data type must match "Content-Type" header
+  });
+  return response.json(); // parses JSON response into native JavaScript objects
+}
+
+postData('https://example.com/answer', { answer: 42 })
+  .then(data => {
+    console.log(data); // JSON data parsed by `data.json()` call
+  });
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
