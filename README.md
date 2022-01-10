@@ -870,53 +870,169 @@ postData('https://example.com/answer', { answer: 42 })
 
 
 
+函数参数默认值可以与先前声明的参数建立引用关系
+
+![image-20220110100130590](https://s2.loli.net/2022/01/10/L7cuKfThxViGFAk.png)
 
 
 
+default是导出产生对象的一个属性，属性名为‘default’  
+
+![image-20220110103357444](https://s2.loli.net/2022/01/10/QnLTPxw4HKWb8vu.png)
+
+![image-20220110105758532](https://s2.loli.net/2022/01/10/bvlgaI2WOhA9T1n.png)
 
 
 
+箭头函数没有原型 所以功能上有些不能用
+
+> [箭头函数 - JavaScript | MDN (mozilla.org)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Functions/Arrow_functions)
+
+![image-20220110112230594](https://s2.loli.net/2022/01/10/zyWp2Yg4Fui5Te7.png)
+
+![image-20220110113438504](https://s2.loli.net/2022/01/10/MK8oBsFGnOEkzYy.png)
+
+> 1、通过 call 或 apply 调用
+>
+> 由于 箭头函数没有自己的this指针，通过 `call()` *或* `apply()` 方法调用一个函数时，只能传递参数（不能绑定this---译者注），他们的第一个参数会被忽略。（这种现象对于bind方法同样成立---译者注）即改变指向无效
+>
+> 2、[没有单独的`this`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Functions/Arrow_functions#没有单独的this)
+>
+> 在箭头函数出现之前，每一个新函数根据它是被如何调用的来定义这个函数的this值：
+>
+> - 如果该函数是一个构造函数，this指针指向一个新的对象
+> - 在严格模式下的函数调用下，this指向undefined
+> - 如果该函数是一个对象的方法，则它的this指针指向这个对象
+> - 等等
+>
+> `This`被证明是令人厌烦的面向对象风格的编程。
+>
+> ✨箭头函数不会创建自己的`this,它只会从自己的作用域链的上一层继承this`。
+>
+> 3、[不绑定`arguments`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Functions/Arrow_functions#不绑定arguments)
+>
+> 箭头函数不绑定[Arguments 对象](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Functions/arguments)。因此，在本示例中，`arguments`只是引用了封闭作用域内的arguments：
+>
+> ```js
+> var arguments = [1, 2, 3];
+> var arr = () => arguments[0];
+> 
+> arr(); // 1
+> 
+> function foo(n) {
+>   var f = () => arguments[0] + n; // 隐式绑定 foo 函数的 arguments 对象. arguments[0] 是 n,即传给foo函数的第一个参数
+>   return f();
+> }
+> 
+> foo(1); // 2
+> foo(2); // 4
+> foo(3); // 6
+> foo(3,2);//6
+> ```
+>
+> 4、[使用 `new` 操作符](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Functions/Arrow_functions#使用_new_操作符)
+>
+> 箭头函数不能用作构造器，和 `new`一起用会抛出错误。
+>
+> ```js
+> var Foo = () => {};
+> var foo = new Foo(); // TypeError: Foo is not a constructor
+> ```
+>
+> 5、[使用 `yield` 关键字](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Functions/Arrow_functions#使用_yield_关键字)
+>
+>  `yield` 关键字通常不能在箭头函数中使用（除非是嵌套在允许使用的函数内）。因此，箭头函数不能用作函数生成器。
+>
+> 6、[使用`prototype`属性](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Functions/Arrow_functions#使用prototype属性)
+>
+> ```js
+> var Foo = () => {};
+> console.log(Foo.prototype); // undefined
+> ```
+>
+> 7、返回对象
+>
+> ```js
+> var func = () => ({foo: 1});
+> ```
 
 
 
+剩余参数只能放在函数的最后一个位置 
+
+![image-20220110141129367](https://s2.loli.net/2022/01/10/e7NVAgkTrS6Jvfq.png)
 
 
 
+JS引擎会自动在语句后添加分号  如果代码不规范 这个特性会产生意外的BUG
+
+![image-20220110142244346](https://s2.loli.net/2022/01/10/mAw6Th4jfnSIe3u.png)
+
+![image-20220110142150319](https://s2.loli.net/2022/01/10/3uKaW4LtcODh9qZ.png)
+
+扩展：关于花括号的简写
+
+```js
+var a = 10,b = 20;
+/**
+ * if 简写
+ */
+if(a > b) console.log('a大');
+if(a < b) console.log('b大');
+/**/
+if(a > b) console.log('a大');
+else console.log('b大');
+
+/**
+ * for简写
+ */
+for(var i=0; i<10; ++i) console.log(i);
+
+/**
+ * while简写
+ */
+while (i > 10) console.log(i);
+```
+
+一个网上的例子
+
+![image-20220110143433776](https://s2.loli.net/2022/01/10/1mKRzeCvlO8ogM7.png)
 
 
 
+![image-20220110144047278](https://s2.loli.net/2022/01/10/sLxeKzi7Solf1kN.png)
+
+![image-20220110144727720](https://s2.loli.net/2022/01/10/TejCn3orwlHGxWa.png)
+
+一个是类一个是构造函数 也可以相互替换 不必对应
+
+![image-20220110145252432](https://s2.loli.net/2022/01/10/XJxQF6CYl7j3iLW.png)
 
 
 
+Symbol()作为键名时 用Object.key()遍历时 将不可见
+
+![image-20220110150817866](https://s2.loli.net/2022/01/10/MwCRXINknPJKgci.png)
+
+Symbol还是很妙的，参考：[javascript中symbol类型的应用场景（意义）和使用方法 - 前端开发博客 (nblogs.com)](https://www.nblogs.com/archives/489/)
 
 
 
+&&运算符的使用
+
+![image-20220110153934440](https://s2.loli.net/2022/01/10/e4MsUPOwlGkJ8Wn.png)
 
 
 
+同步>异步(先微后宏)
+
+![image-20220110155929693](https://s2.loli.net/2022/01/10/trBovp8yY5KaNRI.png)
 
 
 
+加号运算符会将非数字转化为string类型 相当于调用toString()方法
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+![image-20220110171933895](https://s2.loli.net/2022/01/10/IWXaRb6rZU5gfhp.png)
 
 
 
