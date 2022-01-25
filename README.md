@@ -1259,6 +1259,354 @@ async函数中也可以使用`finally`
 
 
 
+eventLoop所有会执行的语句都要一起考虑
+
+![image-20220123125557315](https://s2.loli.net/2022/01/23/T5wkxshWL1YRE9H.png)
+
+![image-20220124090505082](https://s2.loli.net/2022/01/24/7eEDykP69Y8MFtR.png)
+
+![image-20220124125108630](https://s2.loli.net/2022/01/24/AtRuWxfQ6NkVCd2.png)
+
+一个比较好的例子：
+[对微任务和宏任务的执行顺序的个人理解 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/257069622)
+
+```js
+console.log('1');
+
+setTimeout(function() {
+    console.log('2');
+    process.nextTick(function() {
+        console.log('3');
+    })
+    new Promise(function(resolve) {
+        console.log('4');
+        resolve();
+    }).then(function() {
+        console.log('5')
+    })
+})
+process.nextTick(function() {
+    console.log('6');
+})
+new Promise(function(resolve) {
+    console.log('7');
+    resolve();
+}).then(function() {
+    console.log('8')
+})
+
+setTimeout(function() {
+    console.log('9');
+    process.nextTick(function() {
+        console.log('10');
+    })
+    new Promise(function(resolve) {
+        console.log('11');
+        resolve();
+    }).then(function() {
+        console.log('12')
+    })
+})
+
+//打印顺序 1 7 6 8 2 4 3 5 9 11 10 12
+//每一次的执行都会先把同步和微任务先执行了 最后执行宏任务
+//另外需要注意一下 async
+```
+
+await之前的代码被视为同步操作  之后的代码视为微任务
+
+![image-20220124134058862](https://s2.loli.net/2022/01/24/9eR3wz1VuXphKHx.png)
+
+
+
+这里顺带引出一下`requestAnimationFrame()`
+
+> > **`window.requestAnimationFrame()`** 告诉浏览器——你希望执行一个动画，并且要求浏览器在下次重绘之前调用指定的回调函数更新动画。该方法需要传入一个回调函数作为参数，该回调函数会在浏览器下一次重绘之前执行
+>
+> 所以，**requestAnimationFrame的回调时机也是在当前的tick中，所以不属于宏任务，但也不是微任务，排在微任务之后。**
+>
+> 作者：Reed
+> 链接：https://juejin.cn/post/6844903814508773383
+
+
+
+
+
+
+
+`import *`这种情况的导入的原文件`export defaut`内容没有被`.default`处理  这里所以这里`*`代表被导出的对象
+
+![image-20220123143132821](https://s2.loli.net/2022/01/23/bWCNL9V7Af1gMmd.png)
+
+![image-20220123143244821](https://s2.loli.net/2022/01/23/fREKIHzcXU64JYw.png)
+
+1. 引入 export default 导出的模块不用加 {},引入非 export default 导出的模块需要加 {}。
+
+```text
+import fileSystem, {readFile} from 'fs'
+```
+
+2. 一个文件只能导出一个 default 模块。
+
+
+
+Proxy
+
+![image-20220123145739377](https://s2.loli.net/2022/01/23/ir3N5uQaSAqEvZ4.png)
+
+扩展Proxy详见：[Proxy - JavaScript | MDN (mozilla.org)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Proxy)
+
+> 这里为了创建一个完整的 traps 列表示例，我们将尝试代理化一个非原生对象
+
+```js
+/*
+  var docCookies = ... get the "docCookies" object here:
+  https://developer.mozilla.org/zh-CN/docs/DOM/document.cookie#A_little_framework.3A_a_complete_cookies_reader.2Fwriter_with_full_unicode_support
+*/
+
+var docCookies = new Proxy(docCookies, {
+  "get": function (oTarget, sKey) {
+    return oTarget[sKey] || oTarget.getItem(sKey) || undefined;
+  },
+  "set": function (oTarget, sKey, vValue) {
+    if (sKey in oTarget) { return false; }
+    return oTarget.setItem(sKey, vValue);
+  },
+  "deleteProperty": function (oTarget, sKey) {
+    if (sKey in oTarget) { return false; }
+    return oTarget.removeItem(sKey);
+  },
+  "enumerate": function (oTarget, sKey) {
+    return oTarget.keys();
+  },
+  "ownKeys": function (oTarget, sKey) {
+    return oTarget.keys();
+  },
+  "has": function (oTarget, sKey) {
+    return sKey in oTarget || oTarget.hasItem(sKey);
+  },
+  "defineProperty": function (oTarget, sKey, oDesc) {
+    if (oDesc && "value" in oDesc) { oTarget.setItem(sKey, oDesc.value); }
+    return oTarget;
+  },
+  "getOwnPropertyDescriptor": function (oTarget, sKey) {
+    var vValue = oTarget.getItem(sKey);
+    return vValue ? {
+      "value": vValue,
+      "writable": true,
+      "enumerable": true,
+      "configurable": false
+    } : undefined;
+  },
+});
+
+/* Cookies 测试 */
+
+alert(docCookies.my_cookie1 = "First value");
+alert(docCookies.getItem("my_cookie1"));
+
+docCookies.setItem("my_cookie1", "Changed value");
+alert(docCookies.my_cookie1);
+```
+
+
+
+也可以代理数组
+
+> 示例展示：通过属性查找数组中的特定对象 
+
+```js
+let products = new Proxy([
+  { name: 'Firefox'    , type: 'browser' },
+  { name: 'SeaMonkey'  , type: 'browser' },
+  { name: 'Thunderbird', type: 'mailer' }
+], {
+  get: function(obj, prop) {
+    // 默认行为是返回属性值， prop ?通常是一个整数
+    if (prop in obj) {
+      return obj[prop];
+    }
+
+    // 获取 products 的 number; 它是 products.length 的别名
+    if (prop === 'number') {
+      return obj.length;
+    }
+
+    let result, types = {};
+
+    for (let product of obj) {
+      if (product.name === prop) {
+        result = product;
+      }
+      if (types[product.type]) {
+        types[product.type].push(product);
+      } else {
+        types[product.type] = [product];
+      }
+    }
+
+    // 通过 name 获取 product
+    if (result) {
+      return result;
+    }
+
+    // 通过 type 获取 products
+    if (prop in types) {
+      return types[prop];
+    }
+
+    // 获取 product type
+    if (prop === 'types') {
+      return Object.keys(types);
+    }
+
+    return undefined;
+  }
+});
+
+console.log(products[0]); // { name: 'Firefox', type: 'browser' }
+console.log(products['Firefox']); // { name: 'Firefox', type: 'browser' }
+console.log(products['Chrome']); // undefined
+console.log(products.browser); // [{ name: 'Firefox', type: 'browser' }, { name: 'SeaMonkey', type: 'browser' }]
+console.log(products.types); // ['browser', 'mailer']
+console.log(products.number); // 3
+```
+
+
+
+Object.seal()  封闭对象(操作后只能修改值)
+
+> 通常，一个对象是[可扩展的](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/isExtensible)（可以添加新的属性）。密封一个对象会让这个对象变的不能添加新属性，且所有已有属性会变的不可配置。属性不可配置的效果就是属性变的不可删除，以及一个数据属性不能被重新定义成为访问器属性，或者反之。但属性的值仍然可以修改。尝试删除一个密封对象的属性或者将某个密封对象的属性从数据属性转换成访问器属性，结果会静默失败或抛出[`TypeError`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/TypeError)（在[严格模式](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Strict_mode) 中最常见的，但不唯一）
+
+![image-20220123153118662](https://s2.loli.net/2022/01/23/gvwDsRdotpM85ym.png)
+
+> 除了属性值以外的任何变化，都会失败.!!!!!!!!!!!!
+
+```js
+var obj = {
+  prop: function() {},
+  foo: 'bar'
+};
+
+// 可以添加新的属性
+// 可以更改或删除现有的属性
+obj.foo = 'baz';
+obj.lumpy = 'woof';
+delete obj.prop;
+
+var o = Object.seal(obj);
+
+o === obj; // true
+Object.isSealed(obj); // === true
+
+// 仍然可以修改密封对象的属性值
+obj.foo = 'quux';
+
+
+// 但是你不能将属性重新定义成为访问器属性
+// 反之亦然
+Object.defineProperty(obj, 'foo', {
+  get: function() { return 'g'; }
+}); // throws a TypeError
+
+// 除了属性值以外的任何变化，都会失败.!!!!!!!!!!!!
+obj.quaxxor = 'the friendly duck';
+// 添加属性将会失败
+delete obj.foo;
+// 删除属性将会失败
+
+// 在严格模式下，这样的尝试将会抛出错误
+function fail() {
+  'use strict';
+  delete obj.foo; // throws a TypeError
+  obj.sparky = 'arf'; // throws a TypeError
+}
+fail();
+
+// 通过Object.defineProperty添加属性将会报错
+Object.defineProperty(obj, 'ohai', {
+  value: 17
+}); // throws a TypeError
+Object.defineProperty(obj, 'foo', {
+  value: 'eit'
+}); // 通过Object.defineProperty修改属性值
+```
+
+对比Object.freeze()  冻结对象（操作后啥都不能改）   Object.seal()还可以修改值
+
+```js
+var obj = {
+  prop: function() {},
+  foo: 'bar'
+};
+
+// 新的属性会被添加, 已存在的属性可能
+// 会被修改或移除
+obj.foo = 'baz';
+obj.lumpy = 'woof';
+delete obj.prop;
+
+// 作为参数传递的对象与返回的对象都被冻结
+// 所以不必保存返回的对象（因为两个对象全等）
+var o = Object.freeze(obj);
+
+o === obj; // true
+Object.isFrozen(obj); // === true
+
+// 现在任何改变都会失效
+obj.foo = 'quux'; // 静默地不做任何事
+// 静默地不添加此属性
+obj.quaxxor = 'the friendly duck';
+
+// 在严格模式，如此行为将抛出 TypeErrors
+function fail(){
+  'use strict';
+  obj.foo = 'sparky'; // throws a TypeError
+  delete obj.quaxxor; // 返回true，因为quaxxor属性从来未被添加
+  obj.sparky = 'arf'; // throws a TypeError
+}
+
+fail();
+
+// 试图通过 Object.defineProperty 更改属性
+// 下面两个语句都会抛出 TypeError.
+Object.defineProperty(obj, 'ohai', { value: 17 });
+Object.defineProperty(obj, 'foo', { value: 'eit' });
+
+// 也不能更改原型
+// 下面两个语句都会抛出 TypeError.
+Object.setPrototypeOf(obj, { x: 20 })
+obj.__proto__ = { x: 20 }
+```
+
+但是  这个冻结是浅层的 深层的可以修改
+
+![image-20220123153955621](https://s2.loli.net/2022/01/23/SY7ziG4gXfbpVA2.png)
+
+
+
+ES2020 在类中使用`#`操作符 相当于Typescript的`private`声明  表示类私有
+
+![image-20220123154421128](https://s2.loli.net/2022/01/23/ZSfhUEnkKX5NzQ9.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
