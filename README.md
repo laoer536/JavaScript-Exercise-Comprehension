@@ -1585,57 +1585,208 @@ obj.__proto__ = { x: 20 }
 
 
 
-ES2020 在类中使用`#`操作符 相当于Typescript的`private`声明  表示类私有
+ES2020 在类中使用`#`操作符 相当于Typescript的`private`声明  表示类私有   
 
 ![image-20220123154421128](https://s2.loli.net/2022/01/23/ZSfhUEnkKX5NzQ9.png)
 
 
 
+注意const声明的数组或者对象 里面的属性可以改  但是这个数组或者对象整体不能改。
+
+![image-20220126125328955](https://s2.loli.net/2022/01/26/uVH3QXPcbizN8sh.png)
 
 
 
+对象默认不可迭代 可以使用Symbol赋予
+
+![image-20220126130451331](https://s2.loli.net/2022/01/26/CXZOE2yw31hIlA4.png)
 
 
 
+不存在返回‘undefined’并非null   不过数组中有empty 注意一下
+
+![image-20220126131346096](https://s2.loli.net/2022/01/26/CtT9jBQKihsbWfA.png)
 
 
 
+constructor里面声明和之外声明？？？
+
+![image-20220126141904106](https://s2.loli.net/2022/01/26/HtnSjVgDMBiqCKz.png)
+
+![image-20220126163108323](https://s2.loli.net/2022/01/26/wf47aI58PLgxMZQ.png)
 
 
 
+array.splice()
+
+注意添加元素是在开始索引之后添加 但是删除元素的话就是从当前指定索引开始删除  而非当前索引之后的元素开始删除
+
+> ### [参数](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/splice#参数)
+>
+> - `start`
+>
+>   指定修改的开始位置（从0计数）。如果超出了数组的长度，则从数组末尾开始添加内容；如果是负值，则表示从数组末位开始的第几位（从-1计数，这意味着-n是倒数第n个元素并且等价于`array.length-n`）；如果负数的绝对值大于数组的长度，则表示开始位置为第0位。
+>
+> - `deleteCount` 可选
+>
+>   整数，表示要移除的数组元素的个数。
+>
+>   如果 `deleteCount` 大于 `start` 之后的元素的总数，则从 `start` 后面的元素都将被删除（含第 `start` 位）。
+>
+>   如果 `deleteCount` 被省略了，或者它的值大于等于`array.length - start`(也就是说，如果它大于或者等于`start`之后的所有元素的数量)，那么`start`之后数组的所有元素都会被删除。
+>
+>   如果 `deleteCount` 是 0 或者负数，则不移除元素。这种情况下，至少应添加一个新元素。
+>
+> - `item1, item2, *...*` 可选
+>
+>   要添加进数组的元素,从`start` 位置开始。如果不指定，则 `splice()` 将只删除数组元素。
+>
+> ### [返回值](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/splice#返回值)
+>
+> 由被删除的元素组成的一个数组。如果只删除了一个元素，则返回只包含一个元素的数组。如果没有删除元素，则返回空数组。
+>
+> ## [描述](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/splice#描述)
+>
+> 如果添加进数组的元素个数不等于被删除的元素个数，数组的长度会发生相应的改变。
+
+![image-20220127094747882](https://s2.loli.net/2022/01/27/tK1bcdSFYIgMQkv.png)
+
+![image-20220127094652405](https://s2.loli.net/2022/01/27/SXel1DUaFE2oZ3P.png)
+
+![image-20220127095318697](https://s2.loli.net/2022/01/27/8R7yYFcjJx3iewX.png)
 
 
 
+`谁调用就指向谁`这个说法可以被箭头函数突破  箭头函数指向上一级
+
+> 箭头函数不会创建自己的`this,它只会从自己的作用域链的上一层继承this`。
+
+![image-20220127100939513](https://s2.loli.net/2022/01/27/TnqOVF2grLpiZwA.png)
+
+如果不使用箭头函数（this指向了这个对象）
+
+![image-20220127102138572](https://s2.loli.net/2022/01/27/Iu84d3KhQBrfMTv.png)
+
+扩展：
+
+箭头函数递归
+
+```js
+var fact = (x) => ( x==0 ?  1 : x*fact(x-1) );
+fact(5);       // 120
+```
+
+使用三目
+
+```js
+var simple = a => a > 15 ? 15 : a;
+simple(16); // 15
+simple(10); // 10
+
+let max = (a, b) => a > b ? a : b;
+```
 
 
 
+Promise的一些方法扩展：
+
+![image-20220127105128861](https://s2.loli.net/2022/01/27/Hs7x2w49gGt3bJh.png)
+
+Promise.all()
+
+> Promise.all() 方法接收一个promise的iterable类型（注：Array，Map，Set都属于ES6的iterable类型）的输入，并且只返回一个[`Promise`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise)实例， 那个输入的所有promise的resolve回调的结果是一个数组。这个[`Promise`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise)的resolve回调执行是在所有输入的promise的resolve回调都结束，或者输入的iterable里没有promise了的时候。它的reject回调执行是，只要任何一个输入的promise的reject回调执行或者输入不合法的promise就会立即抛出错误，并且reject的是第一个抛出的错误信息。
+
+> Promise.all 的快速返回失败行为
+> Promise.all 在任意一个传入的 promise 失败时返回失败。例如，如果你传入的 promise中，有四个 promise 在一定的时间之后调用成功函数，有一个立即调用失败函数，那么 Promise.all 将立即变为失败。
+
+![image-20220127105044550](https://s2.loli.net/2022/01/27/ufPVliEUaw6psmj.png)
+
+Promise.any()
+
+> `Promise.any()` 接收一个[`Promise`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise)可迭代对象，只要其中的一个 `promise` 成功，就返回那个已经成功的 `promise` 。如果可迭代对象中没有一个 `promise` 成功（即所有的 `promises` 都失败/拒绝），就返回一个失败的 `promise `和[`AggregateError`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/AggregateError)类型的实例，它是 [`Error`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Error) 的一个子类，用于把单一的错误集合在一起。本质上，这个方法和[`Promise.all()`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise/all)是相反的
+
+> 这个方法用于返回第一个成功的 `promise` 。只要有一个 `promise` 成功此方法就会终止，它不会等待其他的 `promise` 全部完成。
+>
+> 不像 [Promise.all()](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise/all) 会返回一组完成值那样（resolved values），我们只能得到一个成功值（假设至少有一个 `promise` 完成）。当我们只需要一个 `promise` 成功，而不关心是哪一个成功时此方法很有用的。
+>
+> 同时, 也不像 [Promise.race()](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise/race) 总是返回第一个结果值（resolved/reject）那样，这个方法返回的是第一个 *成功的* 值。这个方法将会忽略掉所有被拒绝的 `promise`，直到第一个 `promise` 成功。
+
+> 成功（Fulfillment）：
+> 当任何一个被传入的 promise 成功的时候, 无论其他的 promises 成功还是失败，此函数会将那个成功的 promise 作为返回值 。
+>
+> 如果传入的参数是一个空的可迭代对象, 这个方法将会同步返回一个已经完成的 promise。
+> 如果传入的任何一个 promise 已成功, 或者传入的参数不包括任何 promise, 那么 Promise.any 返回一个异步成功的 promise。
+>
+> 失败/拒绝（Rejection）：
+> 如果所有传入的 promises 都失败, Promise.any 将返回异步失败，和一个 AggregateError 对象，它继承自 Error，有一个 error 属性，属性值是由所有失败值填充的数组。
+
+全部成功：
+
+![image-20220127111014582](https://s2.loli.net/2022/01/27/zVQKeWL3TEOmw6D.png)
+
+有一个失败：
+
+![image-20220127105421409](https://s2.loli.net/2022/01/27/JQrIui21f7aOtHn.png)
+
+Promise.race()
+
+> `race` 函数返回一个 `Promise`，它将与第一个传递的 promise 相同的完成方式被完成。它可以是完成（ resolves），也可以是失败（rejects），这要取决于第一个完成的方式是两个中的哪个。
+>
+> 如果传的迭代是空的，则返回的 promise 将永远等待。
+>
+> 如果迭代包含一个或多个非承诺值和/或已解决/拒绝的承诺，则` Promise.race` 将解析为迭代中找到的第一个值。
+
+```js
+var p1 = new Promise(function(resolve, reject) {
+    setTimeout(resolve, 500, "one");
+});
+var p2 = new Promise(function(resolve, reject) {
+    setTimeout(resolve, 100, "two");
+});
+
+Promise.race([p1, p2]).then(function(value) {
+  console.log(value); // "two"
+  // 两个都完成，但 p2 更快
+});
+
+var p3 = new Promise(function(resolve, reject) {
+    setTimeout(resolve, 100, "three");
+});
+var p4 = new Promise(function(resolve, reject) {
+    setTimeout(reject, 500, "four");
+});
+
+Promise.race([p3, p4]).then(function(value) {
+  console.log(value); // "three"
+  // p3 更快，所以它完成了
+}, function(reason) {
+  // 未被调用
+});
+
+var p5 = new Promise(function(resolve, reject) {
+    setTimeout(resolve, 500, "five");
+});
+var p6 = new Promise(function(resolve, reject) {
+    setTimeout(reject, 100, "six");
+});
+
+Promise.race([p5, p6]).then(function(value) {
+  // 未被调用
+}, function(reason) {
+  console.log(reason); // "six"
+  // p6 更快，所以它失败了
+});
+```
+
+关于setTimeout参数的说明
+
+![image-20220127132441503](https://s2.loli.net/2022/01/27/WVwqBeaTXHgk1j9.png)
 
 
 
+完结：
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+试题来源[lydiahallie/javascript-questions: A long list of (advanced) JavaScript questions, and their explanations (github.com)](https://github.com/lydiahallie/javascript-questions)
 
 
 
